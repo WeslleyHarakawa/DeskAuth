@@ -1,140 +1,119 @@
-# DeskAuth — Secure 2FA Authenticator for your Desktop
+# DeskAuth — 2FA Authenticator for Desktop
 
-> A lightweight Chrome Extension that brings your 2FA codes to your desktop — fast, offline, and encrypted.
-> Published by **[Harakawa Tech](http://deskauth.harakawa.tech/)**
-
----
-
-## What is DeskAuth?
-
-DeskAuth is a Chrome Extension that generates **TOTP (Time-based One-Time Password)** codes — the
-same 6-digit codes used by Google Authenticator, Authy, and similar apps — directly inside your
-browser.
-
-Key design principles:
-
-- **100 % offline** — no external APIs, no analytics, no network requests.
-- **Local encryption** — secrets are encrypted with AES-256-GCM before being stored in
-  `chrome.storage.local`. Plaintext secrets never touch disk.
-- **No external dependencies** — every feature is implemented using browser-native APIs
-  (Web Crypto, `chrome.storage`, ES modules).
-- **Manifest V3** — built on the latest Chrome Extension platform for better security and
-  performance.
+> A lightweight Chrome Extension that brings your TOTP authentication codes to your desktop — fast, offline, and encrypted.
+> Published by **[Harakawa Tech](https://deskauth.harakawa.tech/)**
 
 ---
 
-## Loading the extension locally (Development)
+## Overview
 
-1. **Clone or download** this repository to your machine.
+DeskAuth is a Chrome Extension that generates **TOTP (Time-based One-Time Password)** codes — the same 6-digit codes used by Google Authenticator, Authy, and similar apps — directly inside your browser, without needing your phone.
 
-2. Open Chrome and navigate to:
-   ```
-   chrome://extensions
-   ```
+**Core principles:**
 
-3. Enable **Developer mode** (toggle in the top-right corner).
-
-4. Click **"Load unpacked"**.
-
-5. Select the `DeskAuth - 2FA Authenticator` folder (the one containing `manifest.json`).
-
-6. The DeskAuth icon will appear in your Chrome toolbar. Click it to open the popup.
-
-> **Tip:** After editing any source file, go back to `chrome://extensions` and click the
-> refresh icon on the DeskAuth card to reload the extension.
+- 🔒 **100% offline** — no external APIs, no analytics, no network requests
+- 🔐 **Local encryption** — secrets encrypted with AES-256-GCM before storage; plaintext never touches disk
+- 📦 **No external dependencies** — built entirely with browser-native APIs (Web Crypto, `chrome.storage`, ES modules)
+- ✅ **Manifest V3** — built on the latest Chrome Extension platform
 
 ---
 
-## Project file structure
+## Features
+
+- Import accounts from **Google Authenticator** via QR code (camera or image file)
+- Add accounts manually using a Base32 secret key
+- Organize accounts into **profiles** for quick filtering
+- **Search** across all accounts in real time
+- Copy codes to clipboard with one click
+- **Edit** and **delete** accounts
+- Live countdown timer and progress bar per account
+- Urgency indicators when codes are about to expire
+- Available in **English**, **Spanish**, **Portuguese (Brazil)**, and **Portuguese (Portugal)**
+
+---
+
+## Loading the Extension (Developer Mode)
+
+1. Clone or download this repository
+2. Open Chrome and go to `chrome://extensions`
+3. Enable **Developer mode** (toggle in the top-right corner)
+4. Click **"Load unpacked"**
+5. Select the folder containing `manifest.json`
+6. The DeskAuth icon will appear in your Chrome toolbar
+
+> After editing source files, click the refresh icon on the DeskAuth card at `chrome://extensions` to reload.
+
+---
+
+## Project Structure
 
 ```
-DeskAuth - 2FA Authenticator/
+DeskAuth/
 │
-├── manifest.json        Chrome Extension Manifest V3 — permissions, icons, entry point
+├── manifest.json        Manifest V3 — permissions, icons, entry point
 │
-├── popup.html           Main popup UI — rendered when the toolbar icon is clicked
-├── popup.css            Styles for the popup (dark theme, account cards, modal, toast)
-├── popup.js             UI controller — renders accounts, handles events, delegates to modules
+├── popup.html           Main popup UI
+├── popup.css            Dark theme styles — account cards, modals, toasts
+├── popup.js             UI controller — rendering, events, TOTP tick loop
 │
-├── totp.js              TOTP / HOTP generator (RFC 6238 / RFC 4226) — Web Crypto API
-├── storage.js           Account CRUD via chrome.storage.local (encrypts secrets via crypto.js)
-├── crypto.js            AES-256-GCM encryption / decryption using Web Crypto API
-├── qr-import.js         Parses otpauth:// URIs; will decode QR codes from images
-├── utils.js             Shared helpers: ID generation, clipboard, toast, base32 validation
+├── totp.js              TOTP/HOTP engine — RFC 6238 / RFC 4226 (Web Crypto)
+├── storage.js           Account CRUD — chrome.storage.local with encryption
+├── crypto.js            AES-256-GCM + PBKDF2 encryption (Web Crypto)
+├── qr-import.js         QR decoding + otpauth:// and otpauth-migration:// parsers
+├── utils.js             Helpers — ID generation, clipboard, toast, Base32
+│
+├── camera.html          Standalone QR scanner tab
+├── camera.js            Camera stream + frame scanning logic
+│
+├── _locales/
+│   ├── en/              English (default)
+│   ├── es/              Spanish
+│   ├── pt_BR/           Portuguese (Brazil)
+│   └── pt_PT/           Portuguese (Portugal)
 │
 ├── icons/
-│   ├── icon16.png       Toolbar icon (16 × 16)
-│   ├── icon32.png       Toolbar icon (32 × 32)
-│   ├── icon48.png       Extension management page icon (48 × 48)
-│   └── icon128.png      Chrome Web Store icon (128 × 128)
+│   ├── icon16.png
+│   ├── icon32.png
+│   ├── icon48.png
+│   └── icon128.png
 │
-└── README.md            This file
+├── vendor/
+│   └── jsqr.js          Bundled QR decoder (MIT — github.com/cozmo/jsQR)
+│
+└── icon_deskauth.png    Brand icon used in the popup UI
 ```
 
 ---
 
-## Implementation status
+## Security
 
-| Module | Status | Notes |
-|---|---|---|
-| `popup.html` / `popup.css` | ✅ Done | Full UI scaffold with account cards, modal, empty state |
-| `popup.js` | ✅ Done | UI wired up; delegates to modules below |
-| `utils.js` | ✅ Done | ID gen, clipboard, toast, base32 helpers, encoding utils |
-| `storage.js` | 🚧 Scaffold | CRUD works; encryption passthrough until `crypto.js` is complete |
-| `totp.js` | 🚧 Scaffold | Returns `------` stub; full RFC 6238 implementation pending |
-| `crypto.js` | 🚧 Scaffold | AES-GCM structure defined; key derivation & encryption pending |
-| `qr-import.js` | 🚧 Scaffold | URI parser & QR decode pending; jsQR integration planned |
+- Secrets are stored in `chrome.storage.local`, scoped exclusively to this extension
+- All secrets are encrypted with **AES-256-GCM** before storage
+- Encryption key is derived via **PBKDF2** (310,000 iterations, SHA-256) from a randomly generated IKM stored locally
+- No data ever leaves the browser — no remote endpoints, no telemetry, no analytics
+- Content Security Policy: `script-src 'self'; object-src 'self'`
+- Permissions: only `storage` — no host permissions, no tab access
 
 ---
 
-## Roadmap
+## Importing from Google Authenticator
 
-### Phase 1 — TOTP engine (`totp.js`)
-- [ ] Implement `decodeBase32()` — RFC 4648 alphabet decoder
-- [ ] Implement `counterToBytes()` — 64-bit big-endian encoding
-- [ ] Implement `importHmacKey()` — HMAC-SHA1 key import via Web Crypto
-- [ ] Implement `truncate()` — RFC 4226 dynamic truncation
-- [ ] Wire up `generateTOTP()` end-to-end
+1. Open **Google Authenticator** on your phone
+2. Tap **⋮ → Transfer accounts → Export accounts**
+3. Click **Scan** in DeskAuth and point your webcam at the QR code
+4. All accounts are imported, encrypted, and saved locally
 
-### Phase 2 — Encryption (`crypto.js`)
-- [ ] Implement `toBase64()` / `fromBase64()`
-- [ ] Implement `getOrCreateKey()` — PBKDF2 key derivation with persisted salt
-- [ ] Implement `encryptSecret()` — AES-256-GCM encrypt
-- [ ] Implement `decryptSecret()` — AES-256-GCM decrypt
-- [ ] Update `storage.js` to call encrypt/decrypt (remove plaintext passthrough)
-
-### Phase 3 — QR import (`qr-import.js`)
-- [ ] Bundle jsQR (MIT) as `vendor/jsqr.js`
-- [ ] Implement `fileToImageData()` — file → canvas → ImageData
-- [ ] Implement `decodeQRFromImage()` — jsQR wrapper
-- [ ] Implement `parseOtpAuthURI()` — full otpauth:// parser
-- [ ] Wire up "Import QR" button flow in `popup.js`
-
-### Phase 4 — Polish
-- [ ] Account reordering (drag & drop)
-- [ ] Account editing (update issuer / name)
-- [ ] Export / backup (encrypted JSON)
-- [ ] Optional master password prompt
-- [ ] Keyboard navigation & accessibility audit
-
----
-
-## Security notes
-
-- Secrets are stored in `chrome.storage.local`, which is scoped to this extension only.
-- Once `crypto.js` is complete, all secrets will be AES-256-GCM encrypted at rest.
-- No data ever leaves the browser. There are no remote endpoints, no telemetry.
-- The Content Security Policy in `manifest.json` blocks all inline scripts and external sources.
+Multiple QR codes (for large account sets) are supported — DeskAuth will prompt you to scan each one in sequence.
 
 ---
 
 ## Author
 
-DeskAuth was created by **Weslley Harakawa**, software engineer and founder of **Harakawa Tech**.
+Created by **Weslley Harakawa**, software engineer and founder of **Harakawa Tech**.
 
 | | |
 |---|---|
-| 🌐 Website | [deskauth.harakawa.tech](http://deskauth.harakawa.tech/) |
+| 🌐 Website | [deskauth.harakawa.tech](https://deskauth.harakawa.tech/) |
 | 💼 LinkedIn | [linkedin.com/in/weslleyharakawa](https://www.linkedin.com/in/weslleyharakawa/) |
 | 🐙 GitHub | [github.com/weslleyharakawa](https://github.com/weslleyharakawa/) |
 
@@ -142,12 +121,10 @@ DeskAuth was created by **Weslley Harakawa**, software engineer and founder of *
 
 ## Support the Project
 
-DeskAuth is a free and open-source project.
-If you find it useful, you can support its development here:
+DeskAuth is free and open-source.
+If it helps you, consider supporting its development:
 
 ☕ **[Buy Me a Coffee](https://buymeacoffee.com/weslleyaharakawa)**
-
-Your support helps keep the project maintained and evolving. Thank you!
 
 ---
 
