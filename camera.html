@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<!--
+  DeskAuth - 2FA Authenticator for your Desktop
+  Developed by Weslley Harakawa
+  https://weslley.harakawa.tech
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeskAuth — Scan QR Code</title><!-- updated by camera.js via t('camera_page_title') -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f0f1a;
+      color: #e8e8f0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #a78bfa;
+      letter-spacing: 0.01em;
+    }
+
+    .scanner-wrap {
+      position: relative;
+      width: min(480px, 100%);
+      aspect-ratio: 4 / 3;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #1a1a2e;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Aim-frame overlay */
+    .aim-frame {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .aim-box {
+      width: 52%;
+      aspect-ratio: 1;
+      position: relative;
+    }
+
+    .aim-box::before,
+    .aim-box::after,
+    .aim-box span::before,
+    .aim-box span::after {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-color: #a78bfa;
+      border-style: solid;
+    }
+
+    .aim-box::before  { top: 0; left: 0;     border-width: 3px 0 0 3px; border-radius: 3px 0 0 0; }
+    .aim-box::after   { top: 0; right: 0;    border-width: 3px 3px 0 0; border-radius: 0 3px 0 0; }
+    .aim-box span::before { bottom: 0; left: 0;  border-width: 0 0 3px 3px; border-radius: 0 0 0 3px; }
+    .aim-box span::after  { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 3px 0; }
+
+    .scanline {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #a78bfa, transparent);
+      animation: sweep 2s ease-in-out infinite;
+    }
+
+    @keyframes sweep {
+      0%   { top: 0%; }
+      50%  { top: 95%; }
+      100% { top: 0%; }
+    }
+
+    .hint {
+      font-size: 0.875rem;
+      color: #6868a0;
+      text-align: center;
+    }
+
+    #status {
+      font-size: 1rem;
+      font-weight: 500;
+      text-align: center;
+      min-height: 1.4em;
+    }
+
+    #status.success { color: #34d399; }
+    #status.error   { color: #f87171; }
+
+    #btn-group button {
+      padding: 0.6rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    #btn-retry { background: #a78bfa; color: #fff; }
+    #btn-retry:hover { background: #8b5cf6; }
+
+    #btn-close { background: #2a2a3e; color: #9898b0; }
+    #btn-close:hover { background: #3a3a50; }
+
+    /* ── Onboarding + links ─── */
+    .info-section {
+      width: min(480px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid #2a2a40;
+      padding-top: 1.25rem;
+      margin-top: 0.25rem;
+    }
+
+    .info-section__title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #a78bfa;
+      text-align: center;
+    }
+
+    .onb-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.82rem;
+      color: #9898b8;
+      line-height: 1.5;
+    }
+
+    .onb-num {
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      border-radius: 50%;
+      background: #a78bfa22;
+      border: 1px solid #a78bfa55;
+      color: #a78bfa;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .onb-privacy {
+      background: #1a1a2e;
+      border: 1px solid #2e3248;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.78rem;
+      color: #34d399;
+      line-height: 1.5;
+    }
+
+    .onb-backup {
+      background: rgba(180, 120, 20, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.78rem;
+      color: #f59e0b;
+      line-height: 1.5;
+    }
+
+    .info-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .info-link {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 13px;
+      background: #1a1a2e;
+      border: 1px solid #2a2a40;
+      border-radius: 8px;
+      color: #e8e8f0;
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .info-link:hover {
+      border-color: #a78bfa;
+      background: #22223a;
+    }
+
+    .info-link--support {
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+    }
+
+    .info-link--support:hover {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.08);
+    }
+  </style>
+</head>
+<body>
+
+  <h1 data-i18n="camera_h1">DeskAuth — Scan QR Code</h1>
+
+  <div class="scanner-wrap">
+    <video id="video" autoplay playsinline muted></video>
+    <div class="aim-frame">
+      <div class="aim-box">
+        <span></span>
+        <div class="scanline"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="hint" data-i18n="camera_hint_text">Point the QR code at the camera</p>
+  <p id="status"></p>
+  <div id="btn-group" style="display:none; gap:0.75rem; flex-wrap:wrap; justify-content:center;">
+    <button id="btn-retry" data-i18n="btn_try_again">Try again</button>
+    <button id="btn-close" data-i18n="btn_close_tab">Close tab</button>
+  </div>
+
+  <!-- ── Instructions + links ─────────────────────────── -->
+  <div class="info-section">
+    <p class="info-section__title" data-i18n="camera_onb_title">Import from Google Authenticator</p>
+
+    <div class="onb-step">
+      <span class="onb-num">1</span>
+      <div data-i18n-html="camera_onb_step1_html">Open <strong>Google Authenticator</strong> on your phone</div>
+    </div>
+    <div class="onb-step">
+      <span class="onb-num">2</span>
+      <div data-i18n-html="camera_onb_step2_html">Tap <strong>⋮ → Transfer accounts → Export accounts</strong></div>
+    </div>
+    <div class="onb-step">
+      <span class="onb-num">3</span>
+      <div data-i18n="camera_onb_step3">Point the QR code at the camera above</div>
+    </div>
+
+    <div class="onb-privacy" data-i18n-html="camera_privacy_html">
+      🔐 Your secrets never leave this device.<br>
+      All accounts are stored locally and encrypted.
+    </div>
+
+    <div class="onb-backup" data-i18n-html="camera_backup_html">
+      ⚠ Backup your secrets.<br>
+      Losing this device means losing your accounts.
+    </div>
+
+    <div class="info-links">
+      <a href="https://deskauth.harakawa.tech/help" target="_blank" rel="noopener noreferrer"
+         class="info-link">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+        <span data-i18n="camera_link_help">Help &amp; Documentation</span>
+      </a>
+      <a href="https://buymeacoffee.com/weslleyaharakawa" target="_blank" rel="noopener noreferrer"
+         class="info-link info-link--support">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true">
+          <path d="M17 8h1a4 4 0 1 1 0 8h-1"/>
+          <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/>
+          <line x1="6" y1="1" x2="6" y2="4"/>
+          <line x1="10" y1="1" x2="10" y2="4"/>
+          <line x1="14" y1="1" x2="14" y2="4"/>
+        </svg>
+        <span data-i18n="camera_link_support">Support this project</span>
+      </a>
+    </div>
+  </div>
+
+  <script src="camera.js" type="module"></script>
+</body>
+</html>
