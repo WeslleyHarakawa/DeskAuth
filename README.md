@@ -3,6 +3,10 @@
 > A lightweight Chrome Extension that brings your TOTP authentication codes to your desktop — fast, offline, and encrypted.
 > Published by **[Harakawa Tech](https://deskauth.harakawa.tech/)**
 
+<p align="center">
+  <img src="images/deskauth-preview.png" alt="DeskAuth Chrome Extension Preview" width="1000">
+</p>
+
 ---
 
 ## Overview
