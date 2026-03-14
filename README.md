@@ -118,6 +118,7 @@ Created by **Weslley Harakawa**, software engineer and founder of **Harakawa Tec
 | | |
 |---|---|
 | 🌐 Website | [deskauth.harakawa.tech](https://deskauth.harakawa.tech/) |
+| 📖 Documentation | [deskauth.harakawa.tech/help](https://deskauth.harakawa.tech/help) |
 | 💼 LinkedIn | [linkedin.com/in/weslleyharakawa](https://www.linkedin.com/in/weslleyharakawa/) |
 | 🐙 GitHub | [github.com/weslleyharakawa](https://github.com/weslleyharakawa/) |
 
