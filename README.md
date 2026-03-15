@@ -4,6 +4,12 @@
 > Published by **[Harakawa Tech](https://deskauth.harakawa.tech/)**
 
 <p align="center">
+  <a href="https://chromewebstore.google.com/detail/deskauth/jbphlchkohpondmlnfaafnhlfhlagbio">
+    <img src="https://img.shields.io/badge/Chrome_Web_Store-Install_DeskAuth-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Available on Chrome Web Store" />
+  </a>
+</p>
+
+<p align="center">
   <img src="images/deskauth-preview.png" alt="DeskAuth Chrome Extension Preview" width="1000">
 </p>
 
@@ -119,6 +125,7 @@ Created by **Weslley Harakawa**, software engineer and founder of **Harakawa Tec
 |---|---|
 | 🌐 Website | [deskauth.harakawa.tech](https://deskauth.harakawa.tech/) |
 | 📖 Documentation | [deskauth.harakawa.tech/help](https://deskauth.harakawa.tech/help) |
+| 🧩 Chrome Web Store | [Install DeskAuth](https://chromewebstore.google.com/detail/deskauth/jbphlchkohpondmlnfaafnhlfhlagbio) |
 | 💼 LinkedIn | [linkedin.com/in/weslleyharakawa](https://www.linkedin.com/in/weslleyharakawa/) |
 | 🐙 GitHub | [github.com/weslleyharakawa](https://github.com/weslleyharakawa/) |
 
